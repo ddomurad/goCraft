@@ -17,13 +17,13 @@ const (
 )
 
 type TextureParams struct {
-	FilePath        string
-	Mipmaps         bool
-	LinearFiltering bool
+	FilePath         string
+	Mipmaps          bool
+	NearestFiltering bool
 }
 
 type TextureData struct {
-	Id int
+	Id uint32
 }
 
 func GetEmptyTexture(uri string) core.Resource {
@@ -31,7 +31,7 @@ func GetEmptyTexture(uri string) core.Resource {
 		Type:  RT_TEXTURE,
 		Uri:   uri,
 		Empty: true,
-		Data: &TextureData{
+		Data: TextureData{
 			Id: 0,
 		},
 	}
@@ -89,19 +89,19 @@ func (l FileTextureLoader) Load(uri string, param core.LoaderParam) (core.Resour
 		gl.GenerateMipmap(textureId)
 	}
 
-	if textureParams.LinearFiltering {
-		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-		if textureParams.Mipmaps {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-		} else {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-		}
-	} else {
+	if textureParams.NearestFiltering {
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
 		if textureParams.Mipmaps {
 			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST)
 		} else {
 			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+		}
+	} else {
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+		if textureParams.Mipmaps {
+			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+		} else {
+			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 		}
 	}
 
@@ -110,7 +110,7 @@ func (l FileTextureLoader) Load(uri string, param core.LoaderParam) (core.Resour
 		Uri:   uri,
 		Empty: false,
 		Data: TextureData{
-			Id: int(textureId),
+			Id: textureId,
 		},
 		Unload: func() {
 			gl.DeleteTextures(1, &textureId)
