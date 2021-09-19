@@ -27,9 +27,17 @@ type App struct {
 	EventManager    *EventManager
 	ResourceManager *ResourceManager
 	ShouldRun       bool
+	SwapInverval    int
 	fpsTime         float64
 	fpsCount        int
 	lastMoveTime    float64
+}
+
+type Renderable interface {
+	Initialize(app *App) error
+	Render(app *App)
+	Move(dt float64, app *App)
+	GetOrder() int
 }
 
 func InitApp(app App) *App {
@@ -79,6 +87,8 @@ func InitApp(app App) *App {
 	if err = gl.Init(); err != nil {
 		log.Fatalln("failed to initialize GL:", err)
 	}
+
+	glfw.SwapInterval(app.SwapInverval)
 
 	app.ShouldRun = true
 	return &app
