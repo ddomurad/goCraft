@@ -1,26 +1,25 @@
-package flat
+package resources
 
 import (
 	"errors"
 
 	"github.com/ddomurad/goCraft/core"
-	"github.com/ddomurad/goCraft/resources"
 	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ProceduralMesh2dLoader struct{}
 
 const (
-	PMT_QUAD resources.ProceduralMeshType = "pmt_quad"
+	PMT_QUAD ProceduralMeshType = "pmt_quad"
 )
 
 func (l ProceduralMesh2dLoader) CanLoad(resourceType core.ResourceType, uri string, param core.LoaderParam) bool {
-	if resourceType != resources.RT_MESH {
+	if resourceType != RT_MESH {
 		return false
 	}
 
 	switch meshType := param.(type) {
-	case resources.ProceduralMeshType:
+	case ProceduralMeshType:
 		return meshType == PMT_QUAD
 	default:
 		return false
@@ -31,11 +30,11 @@ func (l ProceduralMesh2dLoader) Load(uri string, param core.LoaderParam) (core.R
 	var verticesData []float32
 	var indices []uint32
 
-	switch param.(resources.ProceduralMeshType) {
+	switch param.(ProceduralMeshType) {
 	case PMT_QUAD:
 		verticesData, indices = getQuadMesh()
 	default:
-		return resources.GetEmptyMesh(uri), errors.New("unsuported procedural mesh type")
+		return GetEmptyMesh(uri), errors.New("unsuported procedural mesh type")
 	}
 
 	var vao uint32
@@ -62,10 +61,10 @@ func (l ProceduralMesh2dLoader) Load(uri string, param core.LoaderParam) (core.R
 	gl.BindVertexArray(0)
 
 	return core.Resource{
-		Type:  resources.RT_MESH,
+		Type:  RT_MESH,
 		Uri:   uri,
 		Empty: false,
-		Data: resources.MeshData{
+		Data: MeshData{
 			VAO:     vao,
 			VBO:     vbo,
 			IBO:     ibo,
