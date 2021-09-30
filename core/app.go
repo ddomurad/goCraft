@@ -15,7 +15,7 @@ func init() {
 
 type Window struct {
 	Width  int
-	Hieght int
+	Height int
 
 	glfwWindow *glfw.Window
 }
@@ -52,11 +52,11 @@ func InitApp(title string, width, height int, resizable bool, swapInterval int) 
 
 	app.Window = Window{
 		Width:  width,
-		Hieght: height,
+		Height: height,
 	}
 
-	app.Window.Hieght = height
-	app.Window.glfwWindow, err = glfw.CreateWindow(app.Window.Width, app.Window.Hieght, title, nil, nil)
+	app.Window.Height = height
+	app.Window.glfwWindow, err = glfw.CreateWindow(app.Window.Width, app.Window.Height, title, nil, nil)
 	if err != nil {
 		log.Fatalln("failed to create glfw window:", err)
 	}
@@ -72,7 +72,7 @@ func InitApp(title string, width, height int, resizable bool, swapInterval int) 
 	app.Window.glfwWindow.SetCursorPosCallback(func(w *glfw.Window, xpos float64, ypos float64) {
 		app.EventManager.Push(MouseMoveEvent{
 			Pos:  [2]float64{xpos, ypos},
-			NPos: [2]float64{xpos / float64(app.Window.Width), ypos / float64(app.Window.Hieght)},
+			NPos: [2]float64{xpos / float64(app.Window.Width), ypos / float64(app.Window.Height)},
 		})
 	})
 
@@ -125,7 +125,7 @@ func (a *App) HandleEvent(e Event) bool {
 	switch te := e.(type) {
 	case ResizeEvent:
 		a.Window.Width = te.Size[0]
-		a.Window.Hieght = te.Size[1]
+		a.Window.Height = te.Size[1]
 	}
 	return false
 }

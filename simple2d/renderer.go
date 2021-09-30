@@ -47,7 +47,7 @@ func (r *Renderer2d) Render(dt float64, app *core.App) {
 			gl.Disable(gl.BLEND)
 		}
 
-		hw := float32(app.Window.Hieght) / float32(app.Window.Width)
+		hw := float32(app.Window.Height) / float32(app.Window.Width)
 		r.projectionMatrix = mgl32.Ortho2D(-1.0, 1.0, -hw, hw)
 
 		gl.UseProgram(r.shaderProgram.ProgramId)
