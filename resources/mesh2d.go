@@ -10,7 +10,8 @@ import (
 type ProceduralMesh2dLoader struct{}
 
 const (
-	PMT_QUAD ProceduralMeshType = "pmt_quad"
+	PMT_QUAD        ProceduralMeshType = "pmt_quad"
+	PMT_QUAD_BORDER ProceduralMeshType = "pmt_quad_border"
 )
 
 func (l ProceduralMesh2dLoader) CanLoad(resourceType core.ResourceType, uri string, param core.LoaderParam) bool {
@@ -20,7 +21,7 @@ func (l ProceduralMesh2dLoader) CanLoad(resourceType core.ResourceType, uri stri
 
 	switch meshType := param.(type) {
 	case ProceduralMeshType:
-		return meshType == PMT_QUAD
+		return meshType == PMT_QUAD || meshType == PMT_QUAD_BORDER
 	default:
 		return false
 	}
@@ -29,10 +30,15 @@ func (l ProceduralMesh2dLoader) CanLoad(resourceType core.ResourceType, uri stri
 func (l ProceduralMesh2dLoader) Load(uri string, param core.LoaderParam) (core.Resource, error) {
 	var verticesData []float32
 	var indices []uint32
+	var drawingType uint32
 
 	switch param.(ProceduralMeshType) {
 	case PMT_QUAD:
 		verticesData, indices = getQuadMesh()
+		drawingType = gl.TRIANGLE_FAN
+	case PMT_QUAD_BORDER:
+		verticesData, indices = getQuadBorderMesh()
+		drawingType = gl.LINE_STRIP
 	default:
 		return GetEmptyMesh(uri), errors.New("unsuported procedural mesh type")
 	}
@@ -69,7 +75,7 @@ func (l ProceduralMesh2dLoader) Load(uri string, param core.LoaderParam) (core.R
 			VBO:     vbo,
 			IBO:     ibo,
 			VCount:  int32(len(indices)),
-			Drawing: gl.TRIANGLE_FAN,
+			Drawing: drawingType,
 		},
 		Unload: func() {
 			gl.DeleteBuffers(1, &vbo)
@@ -91,3 +97,21 @@ func getQuadMesh() ([]float32, []uint32) {
 		-0.5, 0.5, 0.0, 0.0, 0.0,
 	}, []uint32{0, 1, 2, 3}
 }
+
+func getQuadBorderMesh() ([]float32, []uint32) {
+	return []float32{
+		-0.5, -0.5, 0.0, 0.0, 1.0,
+		0.5, -0.5, 0.0, 1.0, 1.0,
+		0.5, 0.5, 0.0, 1.0, 0.0,
+		-0.5, 0.5, 0.0, 0.0, 0.0,
+	}, []uint32{0, 1, 2, 3, 0}
+}
+
+// func getCircleMesh() ([]float32, []uint32) {
+// 	return []float32{
+// 		-0.5, -0.5, 0.0, 0.0, 1.0,
+// 		0.5, -0.5, 0.0, 1.0, 1.0,
+// 		0.5, 0.5, 0.0, 1.0, 0.0,
+// 		-0.5, 0.5, 0.0, 0.0, 0.0,
+// 	}, []uint32{0, 1, 2, 3}
+// }

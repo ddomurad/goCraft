@@ -14,10 +14,8 @@ func init() {
 }
 
 type Window struct {
-	Width     int
-	Hieght    int
-	Title     string
-	Resizable bool
+	Width  int
+	Hieght int
 
 	glfwWindow *glfw.Window
 }
@@ -27,44 +25,38 @@ type App struct {
 	EventManager    *EventManager
 	ResourceManager *ResourceManager
 	ShouldRun       bool
-	SwapInverval    int
 	fpsTime         float64
 	fpsCount        int
 	lastMoveTime    float64
 }
 
 type Renderable interface {
-	Initialize(app *App) error
-	Render(app *App)
-	Move(dt float64, app *App)
-	GetOrder() int
+	Render(dt float64, app *App)
 }
 
-func InitApp(app App) *App {
+func InitApp(title string, width, height int, resizable bool, swapInterval int) (app *App) {
 	var err error
 
 	if err = glfw.Init(); err != nil {
 		log.Fatalln("failed to initialize glfw:", err)
 	}
 
-	if app.Window.Width == 0 {
-		app.Window.Width = 800
-	}
-
-	if app.Window.Hieght == 0 {
-		app.Window.Hieght = 600
-	}
-
+	app = &App{}
 	app.EventManager = NewEventManager(100)
-	app.EventManager.RegisterHandler(&app)
+	app.EventManager.RegisterHandler(app)
 	app.ResourceManager = NewResourceManager()
 
-	glfw.WindowHint(glfw.Resizable, IfThenElse(app.Window.Resizable, glfw.True, glfw.False).(int))
+	glfw.WindowHint(glfw.Resizable, IfThenElse(resizable, glfw.True, glfw.False).(int))
 	glfw.WindowHint(glfw.ContextVersionMajor, 2)
 	glfw.WindowHint(glfw.ContextVersionMinor, 1)
 
-	app.Window.glfwWindow, err = glfw.CreateWindow(app.Window.Width, app.Window.Hieght, app.Window.Title, nil, nil)
+	app.Window = Window{
+		Width:  width,
+		Hieght: height,
+	}
 
+	app.Window.Hieght = height
+	app.Window.glfwWindow, err = glfw.CreateWindow(app.Window.Width, app.Window.Hieght, title, nil, nil)
 	if err != nil {
 		log.Fatalln("failed to create glfw window:", err)
 	}
@@ -88,10 +80,11 @@ func InitApp(app App) *App {
 		log.Fatalln("failed to initialize GL:", err)
 	}
 
-	glfw.SwapInterval(app.SwapInverval)
+	glfw.SwapInterval(swapInterval)
 
 	app.ShouldRun = true
-	return &app
+
+	return
 }
 
 func (a *App) Close() {
@@ -109,20 +102,10 @@ func (a *App) Run() bool {
 	return true
 }
 
-func (a *App) Move(movable Renderable) {
-	now := glfw.GetTime()
-	dt := now - a.lastMoveTime
-	movable.Move(dt, a)
-
-	a.lastMoveTime = now
-}
-
-func (a *App) Initialize(initializable Renderable) {
-	initializable.Initialize(a)
-}
-
 func (a *App) Render(renderable Renderable) {
-	if now := glfw.GetTime(); now-a.fpsTime > 1.0 {
+	now := glfw.GetTime()
+
+	if now-a.fpsTime > 1.0 {
 		a.EventManager.Push(FpsEvent{
 			Fps: a.fpsCount,
 		})
@@ -130,9 +113,12 @@ func (a *App) Render(renderable Renderable) {
 		a.fpsCount = 0
 	}
 
-	renderable.Render(a)
+	dt := now - a.lastMoveTime
+
+	renderable.Render(dt, a)
 	a.Window.glfwWindow.SwapBuffers()
 	a.fpsCount++
+	a.lastMoveTime = now
 }
 
 func (a *App) HandleEvent(e Event) bool {

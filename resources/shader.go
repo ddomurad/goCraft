@@ -6,6 +6,7 @@ import (
 
 	"github.com/ddomurad/goCraft/core"
 	"github.com/go-gl/gl/v3.3-core/gl"
+	"github.com/go-gl/mathgl/mgl32"
 )
 
 type ShaderStringSource struct {
@@ -29,7 +30,8 @@ type ShaderData struct {
 
 func (s *ShaderData) GetUniformLocation(name string) int32 {
 	if s.uniformLocations == nil {
-		return gl.GetUniformLocation(s.ProgramId, gl.Str(name+"\x00"))
+		s.uniformLocations = make(map[string]int32)
+		// return gl.GetUniformLocation(s.ProgramId, gl.Str(name+"\x00"))
 	}
 
 	loc, ok := s.uniformLocations[name]
@@ -40,6 +42,21 @@ func (s *ShaderData) GetUniformLocation(name string) int32 {
 	loc = gl.GetUniformLocation(s.ProgramId, gl.Str(name+"\x00"))
 	s.uniformLocations[name] = loc
 	return loc
+}
+
+func (s *ShaderData) SetTransformationMat(transformation mgl32.Mat4) {
+	transLocation := s.GetUniformLocation("uTrans")
+	gl.UniformMatrix4fv(transLocation, 1, false, &transformation[0])
+}
+
+func (s *ShaderData) SetProjectionMat(projection mgl32.Mat4) {
+	projLocation := s.GetUniformLocation("uProj")
+	gl.UniformMatrix4fv(projLocation, 1, false, &projection[0])
+}
+
+func (s *ShaderData) SetColor(color core.Color) {
+	transLocation := s.GetUniformLocation("uColor")
+	gl.Uniform4fv(transLocation, 1, &color[0])
 }
 
 func GetEmptyShader(uri string) core.Resource {
@@ -99,7 +116,7 @@ func (l ShaderLoader) Load(uri string, param core.LoaderParam) (core.Resource, e
 
 func GetDefaultShaderSource() ShaderStringSource {
 	return ShaderStringSource{
-		VertexShader:   "#version 330 core\n layout (location = 0) in vec3 aPos; out vec4 vertexColor; void main(){ gl_Position = vec4(aPos, 1.0); vertexColor = vec4(0.5, 0.0, 0.0, 1.0); }",
+		VertexShader:   "#version 330 core\nlayout (location = 0) in vec3 aPos;layout (location = 1) in vec2 aTex;uniform vec4 uColor;uniform mat4 uTrans;out vec4 vertexColor; out vec2 texCoord;void main(){gl_Position = uTrans * vec4(aPos, 1.0);vertexColor = uColor;texCoord = aTex;}",
 		FragmentShader: "#version 330 core\n out vec4 FragColor; in vec4 vertexColor;  void main() { FragColor = vertexColor; } ",
 	}
 }
