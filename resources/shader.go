@@ -54,6 +54,11 @@ func (s *ShaderData) SetProjectionMat(projection mgl32.Mat4) {
 	gl.UniformMatrix4fv(projLocation, 1, false, &projection[0])
 }
 
+func (s *ShaderData) SetViewMat(view mgl32.Mat4) {
+	viewLocation := s.GetUniformLocation("uView")
+	gl.UniformMatrix4fv(viewLocation, 1, false, &view[0])
+}
+
 func (s *ShaderData) SetColor(color core.Color) {
 	transLocation := s.GetUniformLocation("uColor")
 	gl.Uniform4fv(transLocation, 1, &color[0])
@@ -116,7 +121,7 @@ func (l ShaderLoader) Load(uri string, param core.LoaderParam) (core.Resource, e
 
 func GetDefaultShaderSource() ShaderStringSource {
 	return ShaderStringSource{
-		VertexShader:   "#version 330 core\nlayout (location = 0) in vec3 aPos;layout (location = 1) in vec2 aTex;uniform vec4 uColor;uniform mat4 uTrans;out vec4 vertexColor; out vec2 texCoord;void main(){gl_Position = uTrans * vec4(aPos, 1.0);vertexColor = uColor;texCoord = aTex;}",
+		VertexShader:   "#version 330 core\nlayout (location = 0) in vec3 aPos;layout (location = 1) in vec2 aTex;uniform vec4 uColor;uniform mat4 uTrans;uniform mat4 uProj;uniform mat4 uView;out vec4 vertexColor;out vec2 texCoord;void main(){gl_Position = uProj * uView * uTrans * vec4(aPos, 1.0);vertexColor = uColor;texCoord = aTex;}",
 		FragmentShader: "#version 330 core\n out vec4 FragColor; in vec4 vertexColor;  void main() { FragColor = vertexColor; } ",
 	}
 }

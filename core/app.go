@@ -57,6 +57,7 @@ func InitApp(title string, width, height int, resizable bool, swapInterval int) 
 
 	app.Window.Height = height
 	app.Window.glfwWindow, err = glfw.CreateWindow(app.Window.Width, app.Window.Height, title, nil, nil)
+
 	if err != nil {
 		log.Fatalln("failed to create glfw window:", err)
 	}
@@ -66,6 +67,21 @@ func InitApp(title string, width, height int, resizable bool, swapInterval int) 
 	app.Window.glfwWindow.SetSizeCallback(func(w *glfw.Window, width int, height int) {
 		app.EventManager.Push(ResizeEvent{
 			Size: [2]int{width, height},
+		})
+	})
+
+	app.Window.glfwWindow.SetMouseButtonCallback(func(w *glfw.Window, button glfw.MouseButton, action glfw.Action, mods glfw.ModifierKey) {
+		app.EventManager.Push(MouseButtonEvent{
+			Button: button,
+			Action: action,
+			Mods:   mods,
+		})
+	})
+
+	app.Window.glfwWindow.SetScrollCallback(func(w *glfw.Window, xoff, yoff float64) {
+		app.EventManager.Push(MouseScrollEvent{
+			X: xoff,
+			Y: yoff,
 		})
 	})
 

@@ -22,11 +22,10 @@ type Scene2d interface {
 type Renderer2d struct {
 	scene Scene2d
 
-	clearColor     core.Color
-	shaderProgram  resources.ShaderData
-	quadMesh       resources.MeshData
-	quadBorderMesh resources.MeshData
-
+	clearColor       core.Color
+	shaderProgram    resources.ShaderData
+	quadMesh         resources.MeshData
+	quadBorderMesh   resources.MeshData
 	projectionMatrix mgl32.Mat4
 	alphaEnabled     bool
 	updateNeeded     bool
@@ -47,12 +46,12 @@ func (r *Renderer2d) Render(dt float64, app *core.App) {
 			gl.Disable(gl.BLEND)
 		}
 
-		hw := float32(app.Window.Height) / float32(app.Window.Width)
-		r.projectionMatrix = mgl32.Ortho2D(-1.0, 1.0, -hw, hw)
+		wh := float32(app.Window.Width) / float32(app.Window.Height)
+		r.projectionMatrix = mgl32.Ortho2D(-wh, wh, -1, 1)
 
 		gl.UseProgram(r.shaderProgram.ProgramId)
 		r.shaderProgram.SetProjectionMat(r.projectionMatrix)
-
+		gl.Viewport(0, 0, int32(app.Window.Width), int32(app.Window.Height))
 		r.updateNeeded = false
 	}
 
@@ -63,11 +62,16 @@ func (r *Renderer2d) Render(dt float64, app *core.App) {
 
 func NewRenderer2d(scene Scene2d) *Renderer2d {
 	return &Renderer2d{
-		scene: scene,
+		scene:        scene,
+		updateNeeded: true,
 	}
 }
 
 func (r *Renderer2d) HandleEvent(e core.Event) bool {
+	switch e.(type) {
+	case core.ResizeEvent:
+		r.updateNeeded = true
+	}
 	return false
 }
 
@@ -78,11 +82,11 @@ func (r *Renderer2d) Init(app *core.App) {
 		AddLoader(resources.NewProceduralMesh2dLoader()).
 		PreloadReource(resources.RT_MESH, DRI_QUAD_MESH, resources.PMT_QUAD).
 		PreloadReource(resources.RT_MESH, DRI_QUAD_BORDER_MESH, resources.PMT_QUAD_BORDER).
-		// PreloadReource(resources.RT_SHADER, DRI_SHADER_PROGRAM, resources.GetDefaultShaderSource())
-		PreloadReource(resources.RT_SHADER, DRI_SHADER_PROGRAM, resources.ShaderFileSource{
-			VertexShaderPath:   "/home/work/Projects/goCraftProject/goCraftTestApp/res/shader.vs",
-			FragmentShaderPath: "/home/work/Projects/goCraftProject/goCraftTestApp/res/shader.fs",
-		})
+		PreloadReource(resources.RT_SHADER, DRI_SHADER_PROGRAM, resources.GetDefaultShaderSource())
+		// PreloadReource(resources.RT_SHADER, DRI_SHADER_PROGRAM, resources.ShaderFileSource{
+		// 	VertexShaderPath:   "/home/work/Projects/goCraftProject/goCraftTestApp/res/shader.vs",
+		// 	FragmentShaderPath: "/home/work/Projects/goCraftProject/goCraftTestApp/res/shader.fs",
+		// })
 
 	app.EventManager.RegisterHandler(r)
 }
@@ -95,6 +99,10 @@ func (r *Renderer2d) SetClearColor(color core.Color) {
 func (r *Renderer2d) SetAlpha(enabled bool) {
 	r.alphaEnabled = enabled
 	r.updateNeeded = true
+}
+
+func (r *Renderer2d) ApplyCamera(camera *Camera2d) {
+	r.shaderProgram.SetViewMat(camera.GetViewMatrix())
 }
 
 func (r *Renderer2d) DrawRectV(pos, size mgl32.Vec2, rot float32, color core.Color) {

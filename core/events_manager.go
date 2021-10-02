@@ -1,5 +1,7 @@
 package core
 
+import "github.com/go-gl/glfw/v3.3/glfw"
+
 type Event interface {
 }
 
@@ -19,6 +21,17 @@ type EventManager struct {
 type MouseMoveEvent struct {
 	Pos  [2]float64
 	NPos [2]float64
+}
+
+type MouseButtonEvent struct {
+	Button glfw.MouseButton
+	Action glfw.Action
+	Mods   glfw.ModifierKey
+}
+
+type MouseScrollEvent struct {
+	X float64
+	Y float64
 }
 
 type ResizeEvent struct {
