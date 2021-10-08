@@ -148,6 +148,10 @@ func (r *Renderer2d) SetShader(uri string) {
 	r.activeShaderProgram.SetViewMat(r.activeViewMatrix)
 }
 
+func (r *Renderer2d) GetShader() resource.ShaderData {
+	return r.activeShaderProgram
+}
+
 func (r *Renderer2d) SetTexture(uri string) {
 	textureData := r.app.ResourceManager.GetResource(uri).Data.(resource.TextureData)
 	gl.BindTexture(gl.TEXTURE_2D, textureData.Id)
