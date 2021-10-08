@@ -56,6 +56,11 @@ func (c *Camera2d) Zoom(z float32) {
 	c.shouldRecalculate = true
 }
 
+func (c *Camera2d) ZoomTimes(times float32) {
+	c.zoom *= times
+	c.shouldRecalculate = true
+}
+
 func (c *Camera2d) SetRotation(rot float32) {
 	c.rootation = rot
 	c.shouldRecalculate = true

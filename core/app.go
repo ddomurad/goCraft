@@ -27,14 +27,14 @@ type App struct {
 	ShouldRun       bool
 	fpsTime         float64
 	fpsCount        int
-	lastMoveTime    float64
+	lastRnderTime   float64
 }
 
 type Renderable interface {
 	Render(dt float64, app *App)
 }
 
-func InitApp(title string, width, height int, resizable bool, swapInterval int) (app *App) {
+func InitApp(title string, width, height int, resizable bool, syncSwap bool) (app *App) {
 	var err error
 
 	if err = glfw.Init(); err != nil {
@@ -96,7 +96,7 @@ func InitApp(title string, width, height int, resizable bool, swapInterval int) 
 		log.Fatalln("failed to initialize GL:", err)
 	}
 
-	glfw.SwapInterval(swapInterval)
+	glfw.SwapInterval(IfThenElse(syncSwap, 1, 0).(int))
 
 	app.ShouldRun = true
 
@@ -129,12 +129,12 @@ func (a *App) Render(renderable Renderable) {
 		a.fpsCount = 0
 	}
 
-	dt := now - a.lastMoveTime
+	dt := now - a.lastRnderTime
 
 	renderable.Render(dt, a)
 	a.Window.glfwWindow.SwapBuffers()
 	a.fpsCount++
-	a.lastMoveTime = now
+	a.lastRnderTime = now
 }
 
 func (a *App) HandleEvent(e Event) bool {

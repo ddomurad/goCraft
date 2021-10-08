@@ -81,6 +81,10 @@ func (r *ResourceManager) PreloadReource(resourceType ResourceType, uri string, 
 	return r
 }
 
+func (r *ResourceManager) AddResource(resource Resource) {
+	r.resources[resource.Uri] = resource
+}
+
 func (r *ResourceManager) GetResource(resourceUri string) Resource {
 	rsc, ok := r.resources[resourceUri]
 

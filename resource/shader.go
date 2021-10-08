@@ -1,4 +1,4 @@
-package resources
+package resource
 
 import (
 	"errors"
@@ -17,6 +17,10 @@ type ShaderStringSource struct {
 type ShaderFileSource struct {
 	VertexShaderPath   string
 	FragmentShaderPath string
+}
+
+type EmbededShaderSource struct {
+	ShaderName string
 }
 
 const (
@@ -86,6 +90,8 @@ func (l ShaderLoader) CanLoad(resourceType core.ResourceType, uri string, param 
 		return true
 	case ShaderFileSource:
 		return true
+	case EmbededShaderSource:
+		return true
 	default:
 		return false
 	}
@@ -100,6 +106,8 @@ func (l ShaderLoader) Load(uri string, param core.LoaderParam) (core.Resource, e
 		shaderData, loadError = loadShadersFromString(source.FragmentShader, source.VertexShader)
 	case ShaderFileSource:
 		shaderData, loadError = loadShadersFromFiles(source.FragmentShaderPath, source.VertexShaderPath)
+	case EmbededShaderSource:
+		shaderData, loadError = loadShadersFromEmbededResources(source.ShaderName)
 	default:
 		return GetEmptyShader(uri), errors.New("unsuported shader source")
 	}
@@ -119,13 +127,6 @@ func (l ShaderLoader) Load(uri string, param core.LoaderParam) (core.Resource, e
 	}, nil
 }
 
-func GetDefaultShaderSource() ShaderStringSource {
-	return ShaderStringSource{
-		VertexShader:   "#version 330 core\nlayout (location = 0) in vec3 aPos;layout (location = 1) in vec2 aTex;uniform vec4 uColor;uniform mat4 uTrans;uniform mat4 uProj;uniform mat4 uView;out vec4 vertexColor;out vec2 texCoord;void main(){gl_Position = uProj * uView * uTrans * vec4(aPos, 1.0);vertexColor = uColor;texCoord = aTex;}",
-		FragmentShader: "#version 330 core\n out vec4 FragColor; in vec4 vertexColor;  void main() { FragColor = vertexColor; } ",
-	}
-}
-
 func NewShaderLoader() ShaderLoader {
 	return ShaderLoader{}
 }
@@ -143,6 +144,13 @@ func loadShadersFromFiles(fsPath string, vsPath string) (ShaderData, error) {
 	}
 
 	return loadShadersFromString(string(fs_text), string(vs_text))
+}
+
+func loadShadersFromEmbededResources(name string) (ShaderData, error) {
+	fsSrc := readEmbededFileAsString(name + ".fs")
+	vsSrc := readEmbededFileAsString(name + ".vs")
+
+	return loadShadersFromString(fsSrc, vsSrc)
 }
 
 func loadShadersFromString(fs string, vs string) (ShaderData, error) {

@@ -1,4 +1,4 @@
-package resources
+package resource
 
 import (
 	"errors"
@@ -18,7 +18,6 @@ const (
 
 type TextureParams struct {
 	FilePath         string
-	Mipmaps          bool
 	NearestFiltering bool
 }
 
@@ -85,24 +84,12 @@ func (l FileTextureLoader) Load(uri string, param core.LoaderParam) (core.Resour
 		int32(rgba.Rect.Size().X), int32(rgba.Rect.Size().Y),
 		0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(rgba.Pix))
 
-	if textureParams.Mipmaps {
-		gl.GenerateMipmap(textureId)
-	}
-
 	if textureParams.NearestFiltering {
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-		if textureParams.Mipmaps {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST)
-		} else {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-		}
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	} else {
 		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-		if textureParams.Mipmaps {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
-		} else {
-			gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-		}
+		gl.TexParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
 	}
 
 	return core.Resource{

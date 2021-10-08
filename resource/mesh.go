@@ -1,7 +1,8 @@
-package resources
+package resource
 
 import (
 	"github.com/ddomurad/goCraft/core"
+	"github.com/go-gl/gl/v3.3-core/gl"
 )
 
 type ProceduralMeshType string
@@ -26,4 +27,10 @@ func GetEmptyMesh(uri string) core.Resource {
 		Data:   MeshData{},
 		Unload: nil,
 	}
+}
+
+func (m MeshData) Unload() {
+	gl.DeleteBuffers(1, &m.VBO)
+	gl.DeleteBuffers(1, &m.IBO)
+	gl.DeleteVertexArrays(1, &m.VAO)
 }
